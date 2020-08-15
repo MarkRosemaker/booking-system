@@ -7,10 +7,14 @@ import (
 	"github.com/MarkRosemaker/booking-system/course"
 	"github.com/MarkRosemaker/booking-system/courses"
 	"github.com/MarkRosemaker/go-server/server/form"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 
 	"github.com/MarkRosemaker/go-server/server/api"
 	"github.com/MarkRosemaker/go-server/server/context"
 )
+
+var toTitleCase cases.Caser = cases.Title(language.English)
 
 func Respond(req *http.Request) interface{} {
 	ctx, cancel := context.WithUserTimeout(req)
@@ -21,7 +25,10 @@ func Respond(req *http.Request) interface{} {
 		start, end civil.Date
 		capacity   int
 		historic   bool
-		err        error
+
+		c *course.Course
+
+		err error
 	)
 
 	// get all the user input
@@ -29,6 +36,7 @@ func Respond(req *http.Request) interface{} {
 	if name, err = form.GetStringE(req, "name"); err != nil {
 		return api.ErrBadRequest(err)
 	}
+	name = toTitleCase.String(name)
 
 	if start, err = form.GetDateE(req, "start"); err != nil {
 		return api.ErrBadRequest(err)
@@ -46,25 +54,19 @@ func Respond(req *http.Request) interface{} {
 		return api.ErrBadRequest(err)
 	}
 
+	if historic {
+		c, err = course.NewHistoric(name, start, end, capacity)
+	} else {
+		c, err = course.New(name, start, end, capacity)
+	}
+	if err != nil {
+		return api.ErrBadRequest(err)
+	}
+
 	errChan := make(chan error)
 	go func() <-chan error {
 		// for now: just add to array (quick)
-		// later: add to database (potentially slow)
-
-		var (
-			c   *course.Course
-			err error
-		)
-
-		if historic {
-			c, err = course.NewHistoric(name, start, end, capacity)
-		} else {
-			c, err = course.New(name, start, end, capacity)
-		}
-		if err != nil {
-			errChan <- api.ErrBadRequest(err)
-			return errChan
-		}
+		// later: check for duplicates, add to database (potentially slow)
 
 		errChan <- courses.Add(c)
 		return errChan
@@ -76,8 +78,21 @@ func Respond(req *http.Request) interface{} {
 		if err != nil {
 			return api.ErrWrap(err)
 		}
-		// return api.NewSuccessNow(http.StatusCreated, "created course '%s' with given parameters", name)
-		return api.NewSuccessNow(0, "created course '%s' with given parameters", name)
+		return api.NewSuccessNow(http.StatusCreated, struct {
+			ID       string
+			Name     string
+			Start    civil.Date
+			End      civil.Date
+			Capacity int
+			Classes  int
+		}{
+			c.ID(),
+			c.Name(),
+			c.Start(),
+			c.End(),
+			c.Capacity(),
+			c.NumClasses(),
+		}, "course created")
 	case <-ctx.Done():
 		return api.ErrWrap(ctx.Err())
 	}
