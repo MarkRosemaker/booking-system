@@ -10,6 +10,9 @@ var courseList Courses
 
 func Add(c *course.Course) error {
 	// for now it's simple, but later we might need to return an error
+
+	// later: check for duplicates first
+
 	courseList = append(courseList, c)
 	return nil
 }

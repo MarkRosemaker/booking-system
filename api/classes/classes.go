@@ -20,6 +20,7 @@ func Respond(req *http.Request) interface{} {
 		name       string
 		start, end civil.Date
 		capacity   int
+		historic   bool
 		err        error
 	)
 
@@ -41,29 +42,42 @@ func Respond(req *http.Request) interface{} {
 		return api.ErrBadRequest(err)
 	}
 
-	success := make(chan bool)
-	go func() <-chan bool {
+	if historic, err = form.GetBoolE(req, "historic"); err != nil {
+		return api.ErrBadRequest(err)
+	}
+
+	errChan := make(chan error)
+	go func() <-chan error {
 		// for now: just add to array (quick)
 		// later: add to database (potentially slow)
 
-		c, err := course.New(name, start, end, capacity)
-		if err != nil {
-			err = api.ErrBadRequest(err)
+		var (
+			c   *course.Course
+			err error
+		)
+
+		if historic {
+			c, err = course.NewHistoric(name, start, end, capacity)
 		} else {
-			err = courses.Add(c)
+			c, err = course.New(name, start, end, capacity)
+		}
+		if err != nil {
+			errChan <- api.ErrBadRequest(err)
+			return errChan
 		}
 
-		success <- true
-		return success
+		errChan <- courses.Add(c)
+		return errChan
 	}()
 
 	// timout if necessary
 	select {
-	case <-success:
+	case err = <-errChan:
 		if err != nil {
 			return api.ErrWrap(err)
 		}
-		return api.NewSuccessNow(http.StatusCreated, "created course '%s' with given parameters", name)
+		// return api.NewSuccessNow(http.StatusCreated, "created course '%s' with given parameters", name)
+		return api.NewSuccessNow(0, "created course '%s' with given parameters", name)
 	case <-ctx.Done():
 		return api.ErrWrap(ctx.Err())
 	}

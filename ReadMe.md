@@ -7,3 +7,5 @@ Please send me back the coding challenge at the end of day Tuesday, August 18th 
 rename "class" to course, instead a class is one day/session of the course.
 
 TODO Use Restful standards and create the api endpoint with proper success and error responses.
+
+if the course is in the past, user has to put 'historic' param to true, otherwise an input error is assumed

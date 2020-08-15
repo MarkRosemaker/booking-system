@@ -37,7 +37,7 @@ func New(name string, start, end civil.Date, capacity int) (*Course, error) {
 	// also check if the course is in the past because then it might be a faulty input
 	today := civil.DateOf(time.Now())
 	if end.Before(today) {
-		return nil, fmt.Errorf("invalid course parameters: course is in the past", start, end)
+		return nil, fmt.Errorf("invalid course parameters: course is in the past (ended %d days ago)", today.DaysSince(end))
 	}
 
 	return c, nil
