@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>What's my request?</title>
+		<link rel="stylesheet" href="/main.css" />
+		<link rel="icon" href="/favicon.svg" />
+	</head>
+	<body>
+		<h1>Your request is:</h1>
+		<p>
+			{{ with .Request }}
+				{{ .ParseForm }}
+				<ul>
+					<li>Method: {{ .Method }}</li>
+					<li>RequestURI: {{ .RequestURI }}</li>
+					<li>Accept-Language: {{ index (index .Header "Accept-Language") 0 }}</li>
+					<li>User-Agent: {{ index (index .Header "User-Agent") 0 }}</li>
+					{{ with .Form }}
+					<li>Form:
+						<ul>
+						 {{ range $k, $v := . }}
+							<li>{{ $k }}: {{ index $v 0 }}</li>
+						 {{ end }}
+						</ul>
+					</li>
+					{{ end }}
+				</ul>
+			{{ end }}
+		</p>
+	</body>
+</html>

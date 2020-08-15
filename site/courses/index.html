@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Join a Class</title>
+		<link rel="stylesheet" href="/main.css" />
+		<link rel="icon" href="/favicon.svg" />
+	</head>
+	<body>
+		<article>
+			{{ with .Courses.Current }}
+			<section>
+				<h2>Currently Available</h2>
+				<p>The following courses are happening today. It's not too late to join!</p>
+				{{ range . }}
+				<div class="course">
+					<h3>{{ .Name }}</h3>
+					<p>Available from {{ .Start }} to {{ .End }}, the {{ .Name }} course will be a fun experience for you and make you more fit!</p>
+					<p>Book now, since there are only {{ .Capacity }} seats!</p>
+				</div>
+				{{ end }}
+			</section>
+			{{ end }}
+
+			<h2>Upcoming Courses</h2>
+			<section>
+			{{ with .Courses.Upcoming }}
+				<p>The following courses are starting soon. Book a class now before they're full!</p>
+				{{ range . }}
+				<div class="course">
+					<h3>{{ .Name }}</h3>
+					<p>Available from {{ .Start }} to {{ .End }}, the {{ .Name }} course will be a fun experience for you and make you more fit!</p>
+					<p>Book now, since there are only {{ .Capacity }} seats!</p>
+				</div>
+				{{ end }}
+			{{ else }}
+				<p>Unfortunately, there are no upcoming courses yet. Please stay tuned!</p>
+			{{ end }}
+			</section>
+
+			{{ with .Courses.Past }}
+			<section>
+				<h2>Past Courses</h2>
+				<p>The following courses are unfortunately already over. We hope to see you next time!</p>
+				{{ range . }}
+				<div class="course">
+					<h3>{{ .Name }}</h3>
+					<p>Available from {{ .Start }} to {{ .End }}, the {{ .Name }} course was a fun experience for all participants. We are likely to offer a similar course in the future.</p>
+				</div>
+				{{ end }}
+			</section>
+			{{ end }}
+
+			{{ with .Courses.All }}
+			<section>
+				<h2>All Courses</h2>
+				<p>All courses:</p>
+				{{ range . }}
+				<div class="course">
+					<h3>{{ .Name }}</h3>
+					<p>{{ .ID }}</p>
+					<p>Available from {{ .Start }} to {{ .End }}, the {{ .Name }} course ...</p>
+				</div>
+				{{ end }}
+			</section>
+			{{ end }}
+
+		</article>
+	</body>
+</html>

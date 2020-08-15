@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="de">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Where are my closest neighbors?</title>
+		<link rel="stylesheet" href="/main.css" />
+		<link rel="icon" href="/favicon.svg" />
+	</head>
+	<body>
+		<article>
+			<form action="/api/points" method="GET">
+				<label for="x">X Value:</label>
+				<input type="text" name="x" value="foo" />
+
+				<label for="y">Y Value:</label>
+				<input type="text" name="y" value="blub" />
+
+				<label for="distance">Distance:</label>
+				<input type="text" name="distance" value="far" />
+
+				<input type="hidden" name="timeout" value="long" />
+
+				<input type="submit" name="submit" value="Search" />
+			</form>
+		</article>
+	</body>
+</html>

@@ -1,0 +1,28 @@
+body {
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+}
+
+form {
+	border: 10px groove #00c957;
+	padding: 20px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+form,
+input {
+	font-size: 3vw;
+}
+
+input {
+	padding: 1vw;
+}
+
+input {
+	margin-bottom: 1vw;
+}
