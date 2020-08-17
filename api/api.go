@@ -1,4 +1,4 @@
 // Package api contains subpackages for our API endpoints.
 //
-// For now, it's just one endpoint.
+// The endpoints are '/bookings' and '/classes'.
 package api

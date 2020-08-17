@@ -16,6 +16,12 @@ import (
 
 var toTitleCase cases.Caser = cases.Title(language.English)
 
+// Respond is the response function to an API request to '/classes'.
+//
+// It parses the form input for the course 'name', the 'start' and 'end' dates of the course, and the 'capacity' of the course.
+// Optionally, a 'timeout' and 'historic' parameter can be given. The latter signifies whether or not we want to allow the course to be in the past.
+//
+// If any input does not make sense, an error is returned. Otherwise, the course is added to the list of courses.
 func Respond(req *http.Request) interface{} {
 	ctx, cancel := context.WithUserTimeout(req)
 	defer cancel()
@@ -65,8 +71,8 @@ func Respond(req *http.Request) interface{} {
 
 	errChan := make(chan error)
 	go func() <-chan error {
-		// for now: just add to array (quick)
-		// later: check for duplicates, add to database (potentially slow)
+		// for now: add to arrays and map, check for duplicates (quick)
+		// later: add to database (potentially slow)
 
 		errChan <- courses.Add(c)
 		return errChan
@@ -78,6 +84,7 @@ func Respond(req *http.Request) interface{} {
 		if err != nil {
 			return api.ErrWrap(err)
 		}
+		// return new information about the course, such as ID and number of classes
 		return api.NewSuccessNow(http.StatusCreated, struct {
 			ID       string
 			Name     string

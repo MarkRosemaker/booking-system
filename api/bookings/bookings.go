@@ -2,6 +2,7 @@ package bookings
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/MarkRosemaker/booking-system/courses"
 
@@ -12,6 +13,12 @@ import (
 	"github.com/MarkRosemaker/go-server/server/form"
 )
 
+// Respond is the response function to an API request to '/bookings'.
+//
+// It parses the form input for a person's 'name', the 'date' of a class, and the 'id' of the course.
+// Optionally, a 'timeout' parameter can be given.
+//
+// If any input does not make sense, an error is returned. Otherwise, the name is added to the attendees of the class on that date.
 func Respond(req *http.Request) interface{} {
 	ctx, cancel := context.WithUserTimeout(req)
 	defer cancel()
@@ -58,9 +65,8 @@ func Respond(req *http.Request) interface{} {
 		if err != nil {
 			return api.ErrWrap(err)
 		}
-		return api.NewSuccessNow(0, "congratulations, you are now registered for the course '%s'", c.Name())
+		return api.NewSuccessNow(0, nil, "Congratulations, %s! You are now registered for the %s class on %s.", name, c.Name(), date.In(time.Local).Format("Monday, 2. January 2006"))
 	case <-ctx.Done():
 		return api.ErrWrap(ctx.Err())
 	}
-	return nil
 }
