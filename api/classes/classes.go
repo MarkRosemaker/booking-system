@@ -18,7 +18,7 @@ var toTitleCase cases.Caser = cases.Title(language.English)
 
 // Respond is the response function to an API request to '/classes'.
 //
-// It parses the form input for the course 'name', the 'start' and 'end' dates of the course, and the 'capacity' of the course.
+// It parses the form input for the course 'name', the 'start' and 'end' dates of the course, and the 'capacity' of the course. (The 'name' parameter is transformed into title case.)
 // Optionally, a 'timeout' and 'historic' parameter can be given. The latter signifies whether or not we want to allow the course to be in the past.
 //
 // If any input does not make sense, an error is returned. Otherwise, the course is added to the list of courses.
