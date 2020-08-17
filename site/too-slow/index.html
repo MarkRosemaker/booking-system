@@ -9,20 +9,28 @@
 	</head>
 	<body>
 		<article>
-			<form action="/api/points" method="GET">
-				<label for="x">X Value:</label>
-				<input type="number" name="x" value="1"/>
+			<form action="/classes" target="result">
+				<label for="name">Course Name:</label>
+				<input type="text" name="name" value="Pilates"/>
 
-				<label for="y">Y Value:</label>
-				<input type="number" name="y" value="2" />
+				<label for="start">Start Date:</label>
+				<input type="date" name="start" value="2020-12-01"/>
 
-				<label for="distance">Distance:</label>
-				<input type="number" name="distance" value="30" />
+				<label for="end">End Date:</label>
+				<input type="date" name="end" value="2020-12-20"/>
+
+				<label for="capacity">Capacity:</label>
+				<input type="number" name="capacity" value="10" min="1"/>
+
+				<input type="hidden" name="historic" value="true"/>
 
 				<input type="hidden" name="timeout" value="0s" />
 
-				<input type="submit" name="submit" value="Search" />
+				<input type="submit" name="submit" value="Add Course" />
 			</form>
+
+			<h2>Result</h2>
+			<iframe name="result" id="result" name="result"></iframe>
 		</article>
 	</body>
 </html>

@@ -9,63 +9,108 @@
 	</head>
 	<body>
 		<article>
+			<h1>Courses</h1>
+			{{ if not .Courses.All }}
+				<p>Unfortunately, there are no courses yet. Please stay tuned!</p>
+				<p>You can <a href="/create-courses" target="_blank">create courses here</a>. If you have already done so, reload the page.</p>
+				<button onclick="location.reload();">Reload</button>
+			{{ end }}
+
 			{{ with .Courses.Current }}
 			<section>
 				<h2>Currently Available</h2>
 				<p>The following courses are happening today. It's not too late to join!</p>
 				{{ range . }}
-				<div class="course">
-					<h3>{{ .Name }}</h3>
-					<p>Available from {{ .Start }} to {{ .End }}, the {{ .Name }} course will be a fun experience for you and make you more fit!</p>
+				<article class="course">
+					<h3>{{ .Name }} ({{ dateFormat "January 2, 2006" .Start }} to {{ dateFormat "January 2, 2006" .End }})</h3>
+					<p>The {{ .Name }} course will be a fun experience for you and make you more fit!</p>
 					<p>Book now, since there are only {{ .Capacity }} seats!</p>
-				</div>
+					<p>Course ID: {{ .ID }}</p>
+					<p><label class="toggle" for="toggle-{{ .ID }}">Interested? Click here!</label></p>
+					<input class="toggle" type="checkbox" id="toggle-{{ .ID }}">
+					<form class="toggle" action="/bookings" target="result">
+
+						<label for="name">Your Name:</label>
+						<input type="text" name="name" value="Arnold"/>
+
+						<label for="date">Date:</label>
+						<input type="date" name="date" value="{{ .End }}" min="{{ .Start }}" max="{{ .End }}"/>
+
+						<input type="hidden" name="id" value="{{ .ID }}" />
+
+						<input type="hidden" name="timeout" value="1s" />
+
+						<input type="submit" name="submit" value="Book This Course" />
+					</form>
+				</article>
 				{{ end }}
 			</section>
 			{{ end }}
 
+			{{ with .Courses.Upcoming }}
 			<h2>Upcoming Courses</h2>
 			<section>
-			{{ with .Courses.Upcoming }}
 				<p>The following courses are starting soon. Book a class now before they're full!</p>
 				{{ range . }}
-				<div class="course">
-					<h3>{{ .Name }}</h3>
-					<p>Available from {{ .Start }} to {{ .End }}, the {{ .Name }} course will be a fun experience for you and make you more fit!</p>
+				<article class="course">
+					<h3>{{ .Name }} ({{ dateFormat "January 2, 2006" .Start }} to {{ dateFormat "January 2, 2006" .End }})</h3>
+					<p>The {{ .Name }} course will be a fun experience for you and make you more fit!</p>
 					<p>Book now, since there are only {{ .Capacity }} seats!</p>
-				</div>
+					<p>Course ID: {{ .ID }}</p>
+					<p><label class="toggle" for="toggle-{{ .ID }}">Interested? Click here!</label></p>
+					<input class="toggle" type="checkbox" id="toggle-{{ .ID }}">
+					<form class="toggle" action="/bookings" target="result">
+
+						<label for="name">Your Name:</label>
+						<input type="text" name="name" value="Arnold"/>
+
+						<label for="date">Date:</label>
+						<input type="date" name="date" value="{{ .End }}" min="{{ .Start }}" max="{{ .End }}"/>
+
+						<input type="hidden" name="id" value="{{ .ID }}" />
+
+						<input type="hidden" name="timeout" value="1s" />
+
+						<input type="submit" name="submit" value="Book This Course" />
+					</form>
+				</article>
 				{{ end }}
-			{{ else }}
-				<p>Unfortunately, there are no upcoming courses yet. Please stay tuned!</p>
-			{{ end }}
 			</section>
+			{{ end }}
 
 			{{ with .Courses.Past }}
 			<section>
 				<h2>Past Courses</h2>
 				<p>The following courses are unfortunately already over. We hope to see you next time!</p>
 				{{ range . }}
-				<div class="course">
-					<h3>{{ .Name }}</h3>
-					<p>Available from {{ .Start }} to {{ .End }}, the {{ .Name }} course was a fun experience for all participants. We are likely to offer a similar course in the future.</p>
-				</div>
-				{{ end }}
-			</section>
-			{{ end }}
+				<article class="course">
+					<h3>{{ .Name }} ({{ dateFormat "January 2, 2006" .Start }} to {{ dateFormat "January 2, 2006" .End }})</h3>
+					<p>The {{ .Name }} course was a fun experience for all participants. We are likely to offer a similar course in the future.</p>
+					<p>Course ID: {{ .ID }}</p>
+					<p><label class="toggle" for="toggle-{{ .ID }}">Interested to see a form that won't work because the course is in the past? Click here!</label></p>
+					<input class="toggle" type="checkbox" id="toggle-{{ .ID }}">
+					<form class="toggle" action="/bookings" target="result">
 
-			{{ with .Courses.All }}
-			<section>
-				<h2>All Courses</h2>
-				<p>All courses:</p>
-				{{ range . }}
-				<div class="course">
-					<h3>{{ .Name }}</h3>
-					<p>{{ .ID }}</p>
-					<p>Available from {{ .Start }} to {{ .End }}, the {{ .Name }} course ...</p>
-				</div>
+						<label for="name">Your Name:</label>
+						<input type="text" name="name" value="Arnold"/>
+
+						<label for="date">Date:</label>
+						<input type="date" name="date" value="{{ .End }}" min="{{ .Start }}" max="{{ .End }}"/>
+
+						<input type="hidden" name="id" value="{{ .ID }}" />
+
+						<input type="hidden" name="timeout" value="1s" />
+
+						<input type="submit" name="submit" value="Book This Course" />
+					</form>
+				</article>
 				{{ end }}
 			</section>
 			{{ end }}
 
 		</article>
+
+		<h2>Result</h2>
+		<iframe name="result" id="result" name="result"></iframe>
 	</body>
 </html>
