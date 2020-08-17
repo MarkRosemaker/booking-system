@@ -19,6 +19,8 @@ import (
 // Optionally, a 'timeout' parameter can be given.
 //
 // If any input does not make sense, an error is returned. Otherwise, the name is added to the attendees of the class on that date.
+//
+// Note: A member can book a class only once. For now, this check occurs via the name but obviously two people can have the same name. In the future, this check needs to be done via a member id.
 func Respond(req *http.Request) interface{} {
 	ctx, cancel := context.WithUserTimeout(req)
 	defer cancel()

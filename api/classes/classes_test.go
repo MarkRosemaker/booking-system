@@ -14,6 +14,10 @@ import (
 func TestRespond(t *testing.T) {
 	today := civil.DateOf(time.Now())
 
+	judoToday := fmt.Sprintf("?name=Judo&start=%s&end=%s&capacity=10", today, today)
+	karateToday := fmt.Sprintf("?name=Karate&start=%s&end=%s&capacity=10", today, today)
+	pilatesFuture := fmt.Sprintf("?name=Pilates&start=%s&end=%s&capacity=10", today.AddDays(100), today.AddDays(230))
+
 	tables := []struct {
 		params string
 		res    string
@@ -37,12 +41,24 @@ func TestRespond(t *testing.T) {
 			"400 Bad Request: invalid course parameters: start date (2015-10-21) after end date (1985-10-26)"},
 		{fmt.Sprintf("?name=Karate&start=%s&end=%s&capacity=10", today.AddDays(100), today.AddDays(10)),
 			fmt.Sprintf("400 Bad Request: invalid course parameters: start date (%s) after end date (%s)", today.AddDays(100), today.AddDays(10))},
+		{fmt.Sprintf("?name=Negative&start=%s&end=%s&capacity=-10", today, today),
+			"400 Bad Request: invalid course parameters: capacity (-10) must be positive"},
 
 		// successful course creation
-		{fmt.Sprintf("?name=Karate&start=%s&end=%s&capacity=10", today, today),
+		{judoToday,
 			"course created"},
-		{fmt.Sprintf("?name=Karate&start=%s&end=%s&capacity=10", today.AddDays(100), today.AddDays(230)),
+		{karateToday,
 			"course created"},
+		{pilatesFuture,
+			"course created"},
+
+		// duplicate not accepted
+		{judoToday,
+			"400 Bad Request: a course 'Judo' with the same dates has already been added"},
+		{karateToday,
+			"400 Bad Request: a course 'Karate' with the same dates has already been added"},
+		{pilatesFuture,
+			"400 Bad Request: a course 'Pilates' with the same dates has already been added"},
 	}
 
 	for _, table := range tables {
@@ -70,12 +86,12 @@ func TestRespond(t *testing.T) {
 	if s, ok := resp.(api.Success); ok {
 		v := reflect.ValueOf(s.Object)
 		if classes := v.FieldByName("Classes").Int(); classes != 20 {
-			t.Errorf("Pilates from the example in the challenge specification doesn't have 20 classes, it has: %d", classes)
+			t.Fatalf("Pilates from the example in the challenge specification doesn't have 20 classes, it has: %d", classes)
 		}
 		if capacity := v.FieldByName("Capacity").Int(); capacity != 10 {
-			t.Errorf("Pilates from the example in the challenge specification doesn't have capacity 10, it has: %d", capacity)
+			t.Fatalf("Pilates from the example in the challenge specification doesn't have capacity 10, it has: %d", capacity)
 		}
 	} else {
-		t.Errorf("Didn't receive api.Success when testing the example in the challenge specification, got: %T", resp)
+		t.Fatalf("Didn't receive api.Success when testing the example in the challenge specification, got: %T", resp)
 	}
 }
