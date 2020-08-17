@@ -35,8 +35,6 @@ func Add(c *course.Course) error {
 	mux.Lock()
 	defer mux.Unlock()
 
-	fmt.Println("TODO continue debugging here")
-
 	if _, ok := byID[c.ID()]; ok {
 		return api.ErrBadRequest(fmt.Errorf(
 			"a course with the ID '%s' has already been added", c.ID()))
@@ -58,33 +56,31 @@ func Add(c *course.Course) error {
 	byID[c.ID()] = c
 
 	// insert to sorted lists in the right place
-	byStart.add(c, func(i int) bool {
+	byStart = byStart.add(c, func(i int) bool {
 		return c.Start().Before(byStart[i].Start())
 	})
-	byEnd.add(c, func(i int) bool {
+	byEnd = byEnd.add(c, func(i int) bool {
 		return c.End().Before(byEnd[i].End())
 	})
 
 	return nil
 }
 
-func (cs *Courses) add(c *course.Course, f func(int) bool) {
-	k := len(*cs)
+func (cs Courses) add(c *course.Course, f func(int) bool) Courses {
+	k := len(cs)
 	if k == 0 {
-		cs = &Courses{c}
-		return
+		return Courses{c}
 	}
 
 	switch idx := sort.Search(k, f); idx {
 	case k, k - 1: // new value is the biggest
-		list := append(*cs, c)
-		cs = &list
+		return append(cs, c)
 	default:
 		// most likely the most efficient way to insert
 		// see: https://github.com/golang/go/wiki/SliceTricks
-		list := append(*cs, nil)
-		copy(list[idx+1:], list[idx:])
-		list[idx] = c
-		cs = &list
+		cs = append(cs, nil)
+		copy(cs[idx+1:], cs[idx:])
+		cs[idx] = c
+		return cs
 	}
 }
