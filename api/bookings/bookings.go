@@ -68,7 +68,13 @@ func Respond(req *http.Request) interface{} {
 		if err != nil {
 			return api.ErrWrap(err)
 		}
-		return api.NewSuccessNow(0, nil, "Congratulations, %s! You are now registered for the %s class on %s.", name, c.Name(), date.In(time.Local).Format("Monday, 2. January 2006"))
+		return api.NewSuccessNow(
+			http.StatusCreated,
+			nil,
+			"Congratulations, %s! You are now registered for the %s class on %s.",
+			name,
+			c.Name(),
+			date.In(time.Local).Format("Monday, 2. January 2006"))
 	case <-ctx.Done():
 		return api.ErrWrap(ctx.Err())
 	}
