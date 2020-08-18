@@ -10,6 +10,7 @@
 		- [Historic Flag: Safeguard Against Invalid Dates](#historic-flag-safeguard-against-invalid-dates)
 		- [Timeout Parameter](#timeout-parameter)
 		- [Unique IDs](#unique-ids)
+	- [HTTP Method](#http-method)
 	- [Additions](#additions)
 		- [go-server](#go-server)
 		- [Pages for Your Convenience](#pages-for-your-convenience)
@@ -79,6 +80,10 @@ As an ID, we have an `uint64`. A new ID is created by simple incrementation of a
 When we store the courses in a database and restart the program, we need to remember to continue counting where we left off.
 
 An alternative way to create unique IDs is the package "[github.com/google/uuid](https://github.com/google/uuid)", which creates unique, albeit long, ID strings.
+
+## HTTP Method
+
+A choice was made to not restrict the API to a method like 'POST' because for now, each endpoint only does one thing.
 
 ## Additions
 
