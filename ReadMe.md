@@ -30,7 +30,7 @@ The API routes are then available at http://localhost:8080/classes/ and http://l
 
 To avoid confusion, I decided to use the word `course` for something that happens over several days from a certain start date until an end date.
 
-A `class` is then one day in a course. There is one class for every day of a course.
+A `class` is one day in a course. There is one class for every day of a course.
 
 ### Summary
 
@@ -38,22 +38,22 @@ A `class` is then one day in a course. There is one class for every day of a cou
 
 #### Classes
 
-In [`booking-system/api/classes/classes.go`](https://github.com/MarkRosemaker/booking-system/blob/master/api/classes/classes.go), `func Respond(req *http.Request) interface{}` calculates the response to the request to `/classes`:
+In [booking-system/api/classes/classes.go](https://github.com/MarkRosemaker/booking-system/blob/master/api/classes/classes.go), `func Respond(req *http.Request) interface{}` calculates the response to the request to `/classes`:
 
-- The form is parsed to get the 'name' of the course, the 'start' and 'end' dates (as [civil.Date](https://pkg.go.dev/cloud.google.com/go/civil?tab=doc)), the 'capacity', and the 'historic' flag (more about that later).
+- The form is parsed to get the 'name' of the course, the 'start' and 'end' dates (as [`civil.Date`](https://pkg.go.dev/cloud.google.com/go/civil?tab=doc)), the 'capacity', and the ['historic' flag](#historic-flag-safeguard-against-invalid-dates).
 - From that, a [`course.Course`](https://github.com/MarkRosemaker/booking-system/blob/master/course/course.go) with a unique ID is created.
 - That Course is then added to our [list of courses](https://github.com/MarkRosemaker/booking-system/blob/master/courses/courses.go).
 - A success or error message is returned by the function.
 
 This `interface{}` is encoded into JSON and returned to the user. An HTTP status code is stored in the object and the handler will write that code in the header. This implementation of the handler can be viewed at [`go-server/server/api/endpoint_base.go`](https://github.com/MarkRosemaker/go-server/blob/master/server/api/endpoint_base.go).
 
-If an error occurred, `Respond` will return an [`api.Error` (from `go-server`)](https://github.com/MarkRosemaker/go-server/blob/master/server/api/error.go).
+If an error occurred, `Respond` will return an [`api.Error`](https://github.com/MarkRosemaker/go-server/blob/master/server/api/error.go).
 
 Otherwise, `Respond` will return an [`api.Success`](https://github.com/MarkRosemaker/go-server/blob/master/server/api/success.go).
 
 #### Bookings
 
-In [`booking-system/api/bookings/bookings.go`](https://github.com/MarkRosemaker/booking-system/blob/master/api/bookings/bookings.go), `func Respond(req *http.Request) interface{}` calculates the response to the request to `/bookings`:
+In [booking-system/api/bookings/bookings.go](https://github.com/MarkRosemaker/booking-system/blob/master/api/bookings/bookings.go), `func Respond(req *http.Request) interface{}` calculates the response to the request to `/bookings`:
 
 - The form is parsed to get the 'name' of the customer, the 'date' on which they want to attend the class, and the 'id' of the course the class is part of.
 - From that, the right [`course.Course`](https://github.com/MarkRosemaker/booking-system/blob/master/course/course.go) is fetched from the ID.
