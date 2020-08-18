@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"sort"
 	"sync"
+	"time"
 
+	"cloud.google.com/go/civil"
 	"github.com/MarkRosemaker/go-server/server/api"
 
 	"github.com/MarkRosemaker/booking-system/course"
@@ -38,7 +40,7 @@ func Get(id string) (*course.Course, error) {
 }
 
 // Add adds a course to the collection.
-// If the course already exists, an error is returned. A course is considered a duplicate if the ID is the same or if there is another course with the same dates and the same names.
+// If the course already exists, an error is returned. A course is considered a duplicate if the ID is the same or if there is another course with the same dates and the same name.
 func Add(c *course.Course) error {
 	// later:
 	// - consider passing context as input
@@ -90,7 +92,7 @@ func (cs Courses) add(c *course.Course, f func(int) bool) Courses {
 	}
 
 	switch idx := sort.Search(k, f); idx {
-	case k, k - 1: // new value is the biggest
+	case k: // new value is the biggest
 		return append(cs, c)
 	default: // 0 to k-1
 		// most likely the most efficient way to insert
@@ -100,4 +102,63 @@ func (cs Courses) add(c *course.Course, f func(int) bool) Courses {
 		cs[idx] = c
 		return cs
 	}
+}
+
+// for templates
+
+// All returns all courses, sorted by start date.
+func All() Courses {
+	return byStart
+}
+
+// Upcoming returns all upcoming courses, i.e. courses which start date is after today.
+func Upcoming() Courses {
+	mux.Lock()
+	defer mux.Unlock()
+
+	today := civil.DateOf(time.Now())
+
+	idx := sort.Search(len(byStart), func(i int) bool {
+		return byStart[i].Start().After(today)
+	})
+
+	return byStart[idx:]
+}
+
+// Current returns all current courses, i.e. courses which start date is today or before,
+// and which end date is today or after.
+func Current() Courses {
+	mux.Lock()
+	defer mux.Unlock()
+
+	today := civil.DateOf(time.Now())
+
+	idx := sort.Search(len(byEnd), func(i int) bool {
+		return !byEnd[i].End().Before(today)
+	})
+
+	// since we ignore all past courses, the list is relatively small
+	curr := make(Courses, 0)
+	for _, c := range byEnd[idx:] {
+		// filter upcoming courses
+		if !c.Start().After(today) {
+			curr = append(curr, c)
+		}
+	}
+
+	return curr
+}
+
+// Past returns all past courses, i.e. courses which end date is before today.
+func Past() Courses {
+	mux.Lock()
+	defer mux.Unlock()
+
+	today := civil.DateOf(time.Now())
+
+	idx := sort.Search(len(byEnd), func(i int) bool {
+		return !byEnd[i].End().Before(today)
+	})
+
+	return byEnd[:idx]
 }

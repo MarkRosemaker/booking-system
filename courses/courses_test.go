@@ -2,8 +2,11 @@ package courses
 
 import (
 	"math/rand"
+	"sort"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/MarkRosemaker/booking-system/course"
 	"golang.org/x/sync/errgroup"
@@ -11,45 +14,116 @@ import (
 	"cloud.google.com/go/civil"
 )
 
-func TestAdd(t *testing.T) {
-	// create a bunch of dates
-	k := 1000
-	today := civil.DateOf(time.Now())
-	dates := make([]civil.Date, k)
-	for i := 0; i < k; i++ {
-		dates[i] = today.AddDays(i - k/2)
-	}
+const addedCourses = 1000
 
-	// shuffle dates
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(k, func(i, j int) { dates[i], dates[j] = dates[j], dates[i] })
+var today civil.Date = civil.DateOf(time.Now())
 
-	createAndAdd := func(i int) error {
-		if i >= k {
-			t.Errorf("i is %d", i)
-			return nil
-		}
-
-		start := dates[i]
-		end := dates[i].AddDays(rand.Intn(100))
-		// create a course
-		c, err := course.NewHistoric("Test Course", start, end, 10)
+func addCourses(t *testing.T) {
+	createAndAdd := func(start, end civil.Date) error {
+		// create the course
+		c, err := course.NewHistoric(
+			uuid.New().String(), // unique name for each course
+			start, end, 10)
 		if err != nil {
 			return err
 		}
 
-		Add(c)
-		return nil
+		return Add(c)
 	}
 
 	var eg errgroup.Group
-	// TODO this doesn't work
-	for i := 0; i < k; i++ {
-		eg.Go(func() error { return createAndAdd(i) })
+	rand.Seed(time.Now().UnixNano())
+	for i := 0; i < addedCourses; i++ {
+
+		// start before and after the current day
+		start := today.AddDays(rand.Intn(100) - 50)
+		end := start.AddDays(rand.Intn(100))
+
+		eg.Go(func() error {
+			return createAndAdd(start, end)
+		})
 	}
 
 	if err := eg.Wait(); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestAdd(t *testing.T) {
+	c, err := course.NewHistoric("Test Course", today, today.AddDays(3), 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err = Add(c); err != nil {
+		t.Errorf("couldn't add course: %s", err)
+	}
+
+	// don't add same course twice
+
+	if err = Add(c); err == nil {
+		t.Errorf("could add same course twice")
+	}
+
+	// don't add course with same name and dates (even if capacity is different)
+	// idea: update capacity?
+
+	var duplicate *course.Course
+	duplicate, err = course.NewHistoric("Test Course", today, today.AddDays(3), 20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = Add(duplicate); err == nil {
+		t.Errorf("could add course with same name and dates")
+	}
+
+	// but add course with same name and different dates
+
+	var previous *course.Course
+	previous, err = course.NewHistoric("Test Course", today.AddDays(-7), today.AddDays(-4), 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = Add(previous); err != nil {
+		t.Errorf("couldn't add previous course with same name: %s", err)
+	}
+
+	// create and add a bunch of courses
+	addCourses(t)
+
+	// all length values correct?
+
+	count := 0
+	for _, list := range byName {
+		count += len(list)
+	}
+
+	if count != len(byID) {
+		t.Errorf("byID doesn't have correct lenght, want: %d, have: %d", count, len(byID))
+	}
+
+	if count != len(byStart) {
+		t.Errorf("byStart doesn't have correct lenght, want: %d, have: %d", count, len(byStart))
+	}
+
+	if count != len(byEnd) {
+		t.Errorf("byEnd doesn't have correct lenght, want: %d, have: %d", count, len(byEnd))
+	}
+
+	// all sorted?
+
+	sorted := sort.SliceIsSorted(byStart, func(i, j int) bool {
+		return byStart[i].Start().Before(byStart[j].Start())
+	})
+	if !sorted {
+		t.Errorf("byStart is not sorted")
+	}
+
+	sorted = sort.SliceIsSorted(byEnd, func(i, j int) bool {
+		return byEnd[i].End().Before(byEnd[j].End())
+	})
+	if !sorted {
+		t.Errorf("byEnd is not sorted")
 	}
 }
 
@@ -59,56 +133,82 @@ func TestGet(t *testing.T) {
 		t.Errorf("didn't get error message for fake id")
 	}
 
-	// mux.Lock()
-	// defer mux.Unlock()
+	rand.Seed(time.Now().UnixNano())
+	start := today.AddDays(rand.Intn(100) - 50)
+	end := start.AddDays(rand.Intn(100))
 
-	// if c, ok := byID[id]; ok {
-	// 	return c, nil
-	// }
-	// return nil, fmt.Errorf("course with id '%s' does not exist", id)
+	c, err := course.NewHistoric("Test Course", start, end, 10)
+	if err != nil {
+		t.Fatalf("couldn't create test course: %s", err)
+	}
+	Add(c)
+
+	var c2 *course.Course
+	c2, err = Get(c.ID())
+	if err != nil || c != c2 {
+		t.Errorf("couldn't retrieve test course")
+	}
 }
 
-// Add adds a course to the collection.
-// If the course already exists, an error is returned. A course is considered a duplicate if the ID is the same or if there is another course with the same dates and the same names.
-// func Add(c *course.Course) error {
-// 	// later:
-// 	// - consider passing context as input
-// 	// - save to DB
+func TestAll(t *testing.T) {
+	addCourses(t)
 
-// 	mux.Lock()
-// 	defer mux.Unlock()
+	total := len(All())
+	lenP := len(Past())
+	lenC := len(Current())
+	lenU := len(Upcoming())
+	if total != lenP+lenC+lenU {
+		t.Errorf("sum of courses not correct (%d past + %d current + %d upcoming != %d total)", lenP, lenC, lenU, total)
+	}
+}
 
-// 	// check if the ID exists already
-// 	if _, ok := byID[c.ID()]; ok {
-// 		return api.ErrBadRequest(fmt.Errorf(
-// 			"a course with the ID '%s' has already been added", c.ID()))
-// 	}
+func TestUpcoming(t *testing.T) {
 
-// 	// it's okay to add a course with the same name, but not if it's on the same dates
-// 	if sameName, ok := byName[c.Name()]; ok {
-// 		for _, o := range sameName {
-// 			if c.Start() == o.Start() && c.End() == o.End() {
-// 				return api.ErrBadRequest(fmt.Errorf(
-// 					"a course '%s' with the same dates has already been added", c.Name()))
-// 			}
-// 		}
-// 		// all other courses with that name have different dates, we can add the course to the list
-// 		byName[c.Name()] = append(sameName, c)
-// 	} else {
-// 		// it's the first course with that name
-// 		byName[c.Name()] = Courses{c}
-// 	}
+	addCourses(t)
 
-// 	// add to id map
-// 	byID[c.ID()] = c
+	up := Upcoming()
 
-// 	// insert to sorted lists in the right place
-// 	byStart = byStart.add(c, func(i int) bool {
-// 		return c.Start().Before(byStart[i].Start())
-// 	})
-// 	byEnd = byEnd.add(c, func(i int) bool {
-// 		return c.End().Before(byEnd[i].End())
-// 	})
+	if len(up) == 0 {
+		t.Errorf("very unlikely occurance of 0 upcoming courses after randomly generating %d courses", addedCourses)
+	}
 
-// 	return nil
-// }
+	for _, c := range up {
+		if !c.Start().After(today) {
+			t.Errorf("course starting on %s was erronously given as upcoming course", c.Start())
+		}
+	}
+}
+
+func TestCurrent(t *testing.T) {
+
+	addCourses(t)
+
+	curr := Current()
+
+	if len(curr) == 0 {
+		t.Errorf("very unlikely occurance of 0 current courses after randomly generating %d courses", addedCourses)
+	}
+
+	for _, c := range curr {
+		if c.Start().After(today) || c.End().Before(today) {
+			t.Errorf("course from %s to %s was erronously given as current course", c.Start(), c.End())
+		}
+	}
+}
+
+func TestPast(t *testing.T) {
+
+	addCourses(t)
+
+	past := Past()
+
+	if len(past) == 0 {
+		t.Errorf("very unlikely occurance of 0 past courses after randomly generating %d courses", addedCourses)
+	}
+
+	for _, c := range past {
+		if !c.End().Before(today) {
+			t.Errorf("course ending on %s was erronously given as past course", c.End())
+		}
+	}
+}
