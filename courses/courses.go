@@ -1,3 +1,6 @@
+// Package courses implements adding and retrieval of courses.
+//
+// The courses are stored in maps and sorted slices for efficient access.
 package courses
 
 import (
@@ -17,7 +20,7 @@ type Courses []*course.Course
 
 var (
 	// maps for quick access
-	byID   map[string]*course.Course = make(map[string]*course.Course)
+	byID   map[uint64]*course.Course = make(map[uint64]*course.Course)
 	byName map[string]Courses        = make(map[string]Courses)
 
 	// sorted lists
@@ -29,17 +32,18 @@ var (
 )
 
 // Get returns the course with the given id or an error, if no course with the ID exists.
-func Get(id string) (*course.Course, error) {
+func Get(id uint64) (*course.Course, error) {
 	mux.Lock()
 	defer mux.Unlock()
 
 	if c, ok := byID[id]; ok {
 		return c, nil
 	}
-	return nil, fmt.Errorf("course with id '%s' does not exist", id)
+	return nil, fmt.Errorf("course with id %d does not exist", id)
 }
 
 // Add adds a course to the collection.
+//
 // If the course already exists, an error is returned. A course is considered a duplicate if the ID is the same or if there is another course with the same dates and the same name.
 func Add(c *course.Course) error {
 	// later:
@@ -52,7 +56,7 @@ func Add(c *course.Course) error {
 	// check if the ID exists already
 	if _, ok := byID[c.ID()]; ok {
 		return api.ErrBadRequest(fmt.Errorf(
-			"a course with the ID '%s' has already been added", c.ID()))
+			"a course with the ID %d has already been added", c.ID()))
 	}
 
 	// it's okay to add a course with the same name, but not if it's on the same dates

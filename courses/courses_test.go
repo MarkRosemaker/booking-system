@@ -128,9 +128,9 @@ func TestAdd(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	_, err := Get("fake ID")
+	_, err := Get(0)
 	if err == nil {
-		t.Errorf("didn't get error message for fake id")
+		t.Errorf("didn't get error message for invalid id")
 	}
 
 	rand.Seed(time.Now().UnixNano())

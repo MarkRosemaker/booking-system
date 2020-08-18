@@ -9,11 +9,10 @@
 	</head>
 	<body>
 		<article>
-			<h1>Courses</h1>
+			<h1>Courses <button onclick="location.reload();">Reload</button></h1>
 			{{ if not .Courses.All }}
 				<p>Unfortunately, there are no courses yet. Please stay tuned!</p>
-				<p>You can <a href="/create-courses" target="_blank">create courses here</a>. If you have already done so, reload the page.</p>
-				<button onclick="location.reload();">Reload</button>
+				<p>You can <a href="/create-courses" target="_blank">create courses here</a>.</p>
 			{{ end }}
 
 			{{ with .Courses.Current }}
@@ -25,7 +24,7 @@
 					<h3>{{ .Name }} ({{ dateFormat "January 2, 2006" .Start }} to {{ dateFormat "January 2, 2006" .End }})</h3>
 					<p>The {{ .Name }} course will be a fun experience for you and make you more fit!</p>
 					<p>Book now, since there are only {{ .Capacity }} seats!</p>
-					<p>Course ID: {{ .ID }}</p>
+					<p>Course ID: {{ printf "%04d" .ID }}</p>
 					<p><label class="toggle" for="toggle-{{ .ID }}">Interested? Click here!</label></p>
 					<input class="toggle" type="checkbox" id="toggle-{{ .ID }}">
 					<form class="toggle" action="/bookings" target="result">
@@ -34,13 +33,13 @@
 						<input type="text" name="name" value="Arnold"/>
 
 						<label for="date">Date:</label>
-						<input type="date" name="date" value="{{ .End }}" min="{{ .Start }}" max="{{ .End }}"/>
+						<input type="date" name="date" value="{{ $.Today }}" min="{{ .Start }}" max="{{ .End }}"/>
 
 						<input type="hidden" name="id" value="{{ .ID }}" />
 
 						<input type="hidden" name="timeout" value="1s" />
 
-						<input type="submit" name="submit" value="Book This Course" />
+						<input type="submit" name="submit" onclick="jumpToResult()" value="Book This Course" />
 					</form>
 				</article>
 				{{ end }}
@@ -56,7 +55,7 @@
 					<h3>{{ .Name }} ({{ dateFormat "January 2, 2006" .Start }} to {{ dateFormat "January 2, 2006" .End }})</h3>
 					<p>The {{ .Name }} course will be a fun experience for you and make you more fit!</p>
 					<p>Book now, since there are only {{ .Capacity }} seats!</p>
-					<p>Course ID: {{ .ID }}</p>
+					<p>Course ID: {{ printf "%04d" .ID }}</p>
 					<p><label class="toggle" for="toggle-{{ .ID }}">Interested? Click here!</label></p>
 					<input class="toggle" type="checkbox" id="toggle-{{ .ID }}">
 					<form class="toggle" action="/bookings" target="result">
@@ -65,13 +64,13 @@
 						<input type="text" name="name" value="Arnold"/>
 
 						<label for="date">Date:</label>
-						<input type="date" name="date" value="{{ .End }}" min="{{ .Start }}" max="{{ .End }}"/>
+						<input type="date" name="date" value="{{ $.Today }}" min="{{ .Start }}" max="{{ .End }}"/>
 
 						<input type="hidden" name="id" value="{{ .ID }}" />
 
 						<input type="hidden" name="timeout" value="1s" />
 
-						<input type="submit" name="submit" value="Book This Course" />
+						<input type="submit" name="submit" onclick="jumpToResult()" value="Book This Course" />
 					</form>
 				</article>
 				{{ end }}
@@ -86,8 +85,8 @@
 				<article class="course">
 					<h3>{{ .Name }} ({{ dateFormat "January 2, 2006" .Start }} to {{ dateFormat "January 2, 2006" .End }})</h3>
 					<p>The {{ .Name }} course was a fun experience for all participants. We are likely to offer a similar course in the future.</p>
-					<p>Course ID: {{ .ID }}</p>
-					<p><label class="toggle" for="toggle-{{ .ID }}">Interested to see a form that won't work because the course is in the past? Click here!</label></p>
+					<p>Course ID: {{ printf "%04d" .ID }}</p>
+					<p><label class="toggle" for="toggle-{{ .ID }}">Click here to see the booking form. Of course, since this course is in the past, it won't work.</label></p>
 					<input class="toggle" type="checkbox" id="toggle-{{ .ID }}">
 					<form class="toggle" action="/bookings" target="result">
 
@@ -95,13 +94,13 @@
 						<input type="text" name="name" value="Arnold"/>
 
 						<label for="date">Date:</label>
-						<input type="date" name="date" value="{{ .End }}" min="{{ .Start }}" max="{{ .End }}"/>
+						<input type="date" name="date" value="{{ $.Today }}" min="{{ .Start }}" max="{{ .End }}"/>
 
 						<input type="hidden" name="id" value="{{ .ID }}" />
 
 						<input type="hidden" name="timeout" value="1s" />
 
-						<input type="submit" name="submit" value="Book This Course" />
+						<input type="submit" name="submit" onclick="jumpToResult()" value="Book This Course" />
 					</form>
 				</article>
 				{{ end }}
@@ -110,7 +109,8 @@
 
 		</article>
 
-		<h2>Result</h2>
-		<iframe name="result" id="result" name="result"></iframe>
+		<h2 id="result-header">Result of the API Request</h2>
+		<iframe name="result" id="result"></iframe>
 	</body>
+	<script src="/main.js" type="text/javascript"></script>
 </html>

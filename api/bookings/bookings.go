@@ -1,3 +1,4 @@
+// Package bookings implements the implementation of the API point '/bookings'.
 package bookings
 
 import (
@@ -28,7 +29,7 @@ func Respond(req *http.Request) interface{} {
 	var (
 		name string
 		date civil.Date
-		id   string
+		id   uint64
 		c    *course.Course
 		err  error
 	)
@@ -43,7 +44,7 @@ func Respond(req *http.Request) interface{} {
 		return api.ErrBadRequest(err)
 	}
 
-	if id, err = form.GetStringE(req, "id"); err != nil {
+	if id, err = form.GetUint64E(req, "id"); err != nil {
 		return api.ErrBadRequest(err)
 	}
 

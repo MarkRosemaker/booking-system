@@ -1,3 +1,4 @@
+// Package classes implements the implementation of the API point '/classes'.
 package classes
 
 import (
@@ -86,7 +87,7 @@ func Respond(req *http.Request) interface{} {
 		}
 		// return new information about the course, such as ID and number of classes
 		return api.NewSuccessNow(http.StatusCreated, struct {
-			ID       string
+			ID       uint64
 			Name     string
 			Start    civil.Date
 			End      civil.Date
